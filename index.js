@@ -70,20 +70,20 @@ exports.parse = function parseIntelHex(data, bufferSize) {
 		switch(recordType)
 		{
 			case DATA:
-				var absoluteAddress = highAddress + lowAddress;
-				//Expand buf, if necessary
-				if(absoluteAddress + dataLength >= buf.length)
-				{
-					var tmp = new Buffer((absoluteAddress + dataLength) * 2);
+				// expand buffer as needed
+				if (dataLength + bufLength > buf.length) {
+					var tmp = new Buffer((bufLength + dataLength) * 2);
 					buf.copy(tmp, 0, 0, bufLength);
 					buf = tmp;
 				}
-				//Write over skipped bytes with EMPTY_VALUE
-				if(absoluteAddress > bufLength)
-					buf.fill(EMPTY_VALUE, bufLength, absoluteAddress);
-				//Write the dataFieldBuf to buf
-				dataFieldBuf.copy(buf, absoluteAddress);
-				bufLength = Math.max(bufLength, absoluteAddress + dataLength);
+
+				// loop over bytes in this line, load into buffer
+				var bytesProcessed = 0;
+				while (bytesProcessed < dataLength) {
+					buf[bufLength] = dataFieldBuf[bytesProcessed];
+					bufLength++;
+					bytesProcessed++;
+				}
 				break;
 			case END_OF_FILE:
 				if(dataLength != 0)
